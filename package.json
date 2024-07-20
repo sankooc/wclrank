@@ -11,6 +11,8 @@
   "type": "module",
   "license": "ISC",
   "dependencies": {
+    "moment": "^2.30.1",
+    "momnet": "^2.29.1",
     "puppeteer": "^22.13.1"
   }
 }
