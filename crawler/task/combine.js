@@ -1,0 +1,152 @@
+import puppeteer from 'puppeteer';
+import fs from 'node:fs';
+import moment from 'moment';
+import cheerio from 'cheerio';
+import { RACS } from './constans.js';
+import path from 'node:path';
+
+
+const inspect = (ff) => {
+    const $ = cheerio.load(fs.readFileSync(ff).toString());
+    const items = $('table.ranking-table tbody tr');
+    const rs = [];
+    for (const item of items) {
+        const r = {};
+        r.rank = parseInt($(item).find('td.rank').text().trim());
+        r.name = $(item).find('td .players-table-name a.main-table-player').text().trim();
+        r.clz = $(item).find('td .players-table-name img').attr('alt').trim();
+        r.dps = $(item).find('td.players-table-dps').text().trim();
+        r.ts = 'N/A';
+        const ts = $(item).find('td.players-table-date span').text().trim();
+        if (ts) {
+            const m = ts.match(/^(\d+)\$/);
+            if (m && m.length > 1) {
+                r.ts = moment(parseInt(m[1])).format("MM/DD")
+            }
+        }
+        rs.push(r);
+    }
+    return rs;
+}
+
+const readOverview = (cd) => {
+    let page = 1;
+    const items = [];
+    while (true) {
+        const ff = `./build/${cd}/html/overview-${page}.html`;
+        if (!fs.existsSync(ff)) {
+            break;
+        }
+        items.push(...inspect(ff))
+        page += 1;
+    }
+    return items;
+}
+
+const readRaces = (cd, clz, spec) => {
+    let page = 1
+    const items = [];
+    while (true) {
+        const ff = `./build/${cd}/html/stat-${clz}-${spec}-${page}.html`;
+        if (!fs.existsSync(ff)) {
+            break;
+        }
+        items.push(...inspect(ff))
+        page += 1;
+    }
+    return items;
+};
+
+const parse = (cd, zone, username) => {
+    const fpath = path.join('./', './build/'+cd+'/html/user-'+encodeURIComponent(username)+'.html');
+    if(!fs.existsSync(fpath)){
+        return;
+    }
+    const html = fs.readFileSync(fpath).toString();
+    const $ = cheerio.load(html);
+    const el = $('.stats>.best-perf-avg>b').text().trim();
+    const avg = parseInt(el);
+    const item = {};
+    item.avg = avg;
+    item.details = [];
+    const tableSelect = `table#boss-table-${zone}`;
+    const list = $(tableSelect + '>tbody>tr');
+    for(const tr of list){
+        const val = $(tr).find('td.rank-percent')[0].childNodes[0].nodeValue.trim();
+        const bossId = $(tr).find('td img.boss-icon').attr('src')
+        const m = bossId.match(/\/(\d+)-icon/);
+        item.details.push({id: m[1], val})
+    }
+    return item;
+};
+
+
+export const build = (cd, region, zone, faction) => {
+    const rs = {
+        cd,
+        region,
+        zone,
+        faction,
+        ts: Date.now(),
+        items: [],
+    };
+    const userMap = {};
+    const getUser = (name, ts) => {
+        if (userMap[name]) return userMap[name];
+        userMap[name] = {
+            ts,
+            subs: [],
+        }
+        return userMap[name];
+    }
+
+    let items = readOverview(cd);
+
+    for (const item of items) {
+        const { rank, name, ts, dps, clz } = item;
+        const userInfo = getUser(name, ts);
+        userInfo.overview = { rank, clz, dps };
+    }
+    console.log('overvie-complete');
+    for (const k of Object.keys(RACS)) {
+        const sps = RACS[k];
+        for (const spec of sps) {
+            let items = readRaces(cd, k, spec);
+            for (const item of items) {
+                const { rank, name, ts, dps, clz } = item;
+                const userInfo = getUser(name, ts);
+                userInfo.subs.push({
+                    clz,
+                    rank,
+                    dps
+                })
+            }
+        }
+    }
+    console.log('race-complete');
+    console.log('user_count', Object.keys(userMap).length);
+    for(const username of Object.keys(userMap)){
+        const userInfo = userMap[username];
+        userInfo.name = username;
+        const info = parse(cd, zone, username);
+        userInfo.score = 0;
+        if(info){
+            userInfo.score = info.avg
+        }
+        rs.items.push(userInfo)
+    }
+    console.log('user mapping');
+    fs.writeFileSync(`./build/${cd}/data.json`, JSON.stringify(rs));
+};
+
+
+
+const cd = '0718';
+const region = '5042';
+const zone = '1025';
+const faction = '1';
+const rname = '碧玉矿洞';
+// console.log(readOverview(cd).length)
+// readRaces(cd, 'Priest', 'Shadow')
+build(cd, region, zone, faction);
+// console.log(parse(cd, zone, '大尾巴黄鼠狼'));

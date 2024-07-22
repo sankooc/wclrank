@@ -36,7 +36,7 @@ export const build = async (region, zone, faction, start, maxPage, rname) => {
             return attr ? attr.trim() : '';
         }
         await page.goto(ranking);
-        await page.setViewport({ width: 1080, height: 1024 });
+        await page.setViewport({ width: 600, height: 800 });
         await page.waitForSelector('table .players-table-name');
         // await page.screenshot({
         //   path: 'page.png',
@@ -62,7 +62,6 @@ export const build = async (region, zone, faction, start, maxPage, rname) => {
                         }
                     }
                     rs.push(item);
-                    // console.log(rank, name, itemLevel, dps, ts);
                 } catch (e) {
                     console.error(e);
                 }

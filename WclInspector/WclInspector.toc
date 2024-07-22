@@ -1,0 +1,12 @@
+## Interface: 11304
+## Version: 0.4.3
+## Title: WCL英雄榜
+## Notes: WCL英雄榜@柯米里亚
+## Author: sankooc
+## X-Min-Interface-Classic: 11304
+## X-Min-Interface-BCC: 20504
+## X-Min-Interface-Wrath: 30400
+
+datas.lua
+data.lua
+main.lua
