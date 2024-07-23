@@ -51,7 +51,7 @@ function doMap(str, full)
         end
         return string.format("%s", _b)
     end
-    return 'unkown'
+    return 'unknown'
 end
 
 function getCor(rank)

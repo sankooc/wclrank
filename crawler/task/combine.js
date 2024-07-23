@@ -1,9 +1,7 @@
-import puppeteer from 'puppeteer';
 import fs from 'node:fs';
 import moment from 'moment';
 import cheerio from 'cheerio';
-import { RACS } from './constans.js';
-import path from 'node:path';
+import { RACS,log } from './constans.js';
 
 
 const inspect = (ff) => {
@@ -29,11 +27,12 @@ const inspect = (ff) => {
     return rs;
 }
 
-const readOverview = (cd) => {
+const readOverview = (colddown) => {
+    const { cd } = colddown;
     let page = 1;
     const items = [];
     while (true) {
-        const ff = `./build/${cd}/html/overview-${page}.html`;
+        const ff = colddown.overview(page);
         if (!fs.existsSync(ff)) {
             break;
         }
@@ -43,11 +42,11 @@ const readOverview = (cd) => {
     return items;
 }
 
-const readRaces = (cd, clz, spec) => {
+const readRaces = (colddown, clz, spec) => {
     let page = 1
     const items = [];
     while (true) {
-        const ff = `./build/${cd}/html/stat-${clz}-${spec}-${page}.html`;
+        const ff = colddown.spec(clz, spec, page);
         if (!fs.existsSync(ff)) {
             break;
         }
@@ -57,8 +56,10 @@ const readRaces = (cd, clz, spec) => {
     return items;
 };
 
-const parse = (cd, zone, username) => {
-    const fpath = path.join('./', './build/'+cd+'/html/user-'+encodeURIComponent(username)+'.html');
+const parse = (colddown, username) => {
+    const { cd, info } = colddown;
+    const { region, zone, faction } = info;
+    const fpath = colddown.userFile(username);
     if(!fs.existsSync(fpath)){
         return;
     }
@@ -81,7 +82,9 @@ const parse = (cd, zone, username) => {
 };
 
 
-export const build = (cd, region, zone, faction) => {
+export const build = (colddown) => {
+    const { cd, info } = colddown;
+    const { region, zone, faction } = info;
     const rs = {
         cd,
         region,
@@ -100,18 +103,18 @@ export const build = (cd, region, zone, faction) => {
         return userMap[name];
     }
 
-    let items = readOverview(cd);
+    let items = readOverview(colddown);
 
     for (const item of items) {
         const { rank, name, ts, dps, clz } = item;
         const userInfo = getUser(name, ts);
         userInfo.overview = { rank, clz, dps };
     }
-    console.log('overvie-complete');
+    log('overvie-complete');
     for (const k of Object.keys(RACS)) {
         const sps = RACS[k];
         for (const spec of sps) {
-            let items = readRaces(cd, k, spec);
+            let items = readRaces(colddown, k, spec);
             for (const item of items) {
                 const { rank, name, ts, dps, clz } = item;
                 const userInfo = getUser(name, ts);
@@ -123,30 +126,24 @@ export const build = (cd, region, zone, faction) => {
             }
         }
     }
-    console.log('race-complete');
-    console.log('user_count', Object.keys(userMap).length);
+    log('race-complete');
+    const uerRankedCount = Object.keys(userMap).length;
+    log('user ranked count', uerRankedCount);
+    let infoCount = 0;
     for(const username of Object.keys(userMap)){
         const userInfo = userMap[username];
         userInfo.name = username;
-        const info = parse(cd, zone, username);
+        const info = parse(colddown, username);
         userInfo.score = 0;
         if(info){
+            infoCount += 1;
             userInfo.score = info.avg
         }
         rs.items.push(userInfo)
     }
-    console.log('user mapping');
+    log('user ranked count', infoCount);
+    log('user mapping complete');
     fs.writeFileSync(`./build/${cd}/data.json`, JSON.stringify(rs));
+
+    return {uerRankedCount, infoCount};
 };
-
-
-
-const cd = '0718';
-const region = '5042';
-const zone = '1025';
-const faction = '1';
-const rname = '碧玉矿洞';
-// console.log(readOverview(cd).length)
-// readRaces(cd, 'Priest', 'Shadow')
-build(cd, region, zone, faction);
-// console.log(parse(cd, zone, '大尾巴黄鼠狼'));

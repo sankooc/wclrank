@@ -1,5 +1,6 @@
 versions:
   - 
-    region: 5042
-    faction: 1
-    zone: 1025
+    region: 5042 # 服务器
+    faction: 1   # 阵营 1-联盟 2-部落
+    zone: 1025   # raid 1025-p1阶段双龙
+    limit: 2000   # 构建最低用户信息数

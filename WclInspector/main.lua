@@ -12,7 +12,6 @@ GameTooltip:HookScript("OnTooltipSetUnit", function(self)
     for i = 1, numLines do
         text[i] = _G["GameTooltipTextLeft" .. i]:GetText()
     end
-    
     if (not text[1] or text[1] == "") then return end
     if (not text[2] or text[2] == "") then return end
     if (UnitIsPlayer(unit)) then
@@ -36,7 +35,6 @@ GameTooltip:HookScript("OnTooltipSetUnit", function(self)
             end
         end
     end
-    
     local n = 0
     for i=1,numLines do
         if (text[i] and text[i] ~= "") then
@@ -50,8 +48,6 @@ GameTooltip:HookScript("OnTooltipSetUnit", function(self)
             tinsert(linesToAdd, {v,0.4,0.4,0.3})
         end
     end
-
-    
     for _,v in ipairs(linesToAdd) do
         if (n < numLines) then
             n = n+1

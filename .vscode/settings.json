@@ -1,0 +1,20 @@
+{
+  "Lua.diagnostics.globals": [
+    "LibStub",
+    "tinsert",
+    "UnitName",
+    "UnitRace",
+    "UnitClassBase",
+    "UnitClass",
+    "getWCLinfo",
+    "RAID_CLASS_COLORS",
+    "NORMAL_FONT_COLOR",
+    "CUSTOM_CLASS_COLORS",
+    "UnitIsPlayer",
+    "GameTooltip",
+    "string.split",
+    "strsplit",
+    "strlen",
+    "wclData"
+  ]
+}

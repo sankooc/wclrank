@@ -1,8 +1,10 @@
 import config from 'config';
 import moment from 'moment';
-import { ColdDown } from './task/constans.js';
-import { build as init } from './task/init.js';
+import { ColdDown, log } from './task/constans.js';
 import { build as rank } from './task/rank.js';
+import { build as user } from './task/user.js';
+import { build as combine } from './task/combine.js';
+import { build as making } from './task/making.js';
 const {versions} = config;
 
 
@@ -10,18 +12,19 @@ const {versions} = config;
 const cur = moment().startOf('week').add(4, 'days');
 const d = cur.toDate().getTime();
 
-if(d > Date.now()) {
-  console.log(cur.subtract(7, 'days').format('MMDD'));
-}
+// if(d > Date.now()) {
+  // console.log(cur.subtract(7, 'days').format('MMDD'));
+// }
+const cd = '0718';
 for(const version of versions){
-  const c = new ColdDown('0725', version);
+  const { limit } = version;
+  log('start', cd, 'on limit['+limit+']')
+  const c = new ColdDown(cd, version);
   c.init();
   await rank(c)
+  const {total, infos} = await user(c);
+  if(infos >= limit) {
+    await combine(c);
+    await making(c);
+  }
 }
-// console.log(versions);
-// init('0718', versions[0]);
-
-// const region = '5042';
-// const zone = '1025';
-// const faction = '1';
-// const rname = '碧玉矿洞';

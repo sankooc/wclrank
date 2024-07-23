@@ -34,8 +34,8 @@ export const build = async (colddown) => {
                 break;
             }
             const ff = colddown.overview(pageNum);
-            log(fs.existsSync(ff));
             if(fs.existsSync(ff)){
+                log(`overview ${pageNum} page exist`);
                 const next = hasNext(fs.readFileSync(ff).toString());
                 if(!next){
                     break;
@@ -59,6 +59,7 @@ export const build = async (colddown) => {
             while(true) {
                 const ff = colddown.spec(k, spec, pageNum);
                 if(fs.existsSync(ff)){
+                    log(`spec ${k}-${spec}-${pageNum} page exist`);
                     const next = hasNext(fs.readFileSync(ff).toString());
                     if(!next){
                         break;

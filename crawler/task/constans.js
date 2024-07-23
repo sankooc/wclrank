@@ -40,6 +40,16 @@ export class ColdDown {
     specPage(clz, spec, page){
         return `https://classic.warcraftlogs.com/server/rankings/${this.info.region}/${this.info.zone}#class=${clz}&spec=${spec}&faction=${this.info.faction}&page=${page}`;
     }
+    userFile(username){
+        return this.root+'/html/user-'+encodeURIComponent(username)+'.html';
+    }
+    userPage(username){
+        const reg = REGION[this.info.region];
+        if(!reg){
+            return;
+        }
+        return `https://classic.warcraftlogs.com/character/cn/${encodeURIComponent(reg)}/${encodeURIComponent(username)}#zone=${this.info.zone}&size=25`;
+    }
 }
 
 export const now = () => {
@@ -58,6 +68,11 @@ export const REGION = {
 
 export const ZONE = {
     1025: 'NAXX',
+}
+
+export const FAC = {
+    1: '联盟',
+    2: '部落',
 }
 
 export const RACS = {

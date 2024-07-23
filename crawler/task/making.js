@@ -1,51 +1,50 @@
-// import $ from 'jquery';
 import fs from 'node:fs';
-import path from 'node:path';
+import {REGION, ZONE, FAC, log} from './constans.js';
+import { spawn,exec } from 'node:child_process';
 
-const cd = '0718';
-const region = '5042';
-const zone = '1025';
-const faction = '1';
-const rname = '碧玉矿洞';
-
-const compress = (item) => {
-    const { ts, subs, overview,score, name } = item;
-    let str = `${ts}@${score}@`;
-    if(overview){
-        str += `${overview.rank}|${overview.clz}|${overview.dps}`
+export const build = (colddown) => {
+    const { cd, info } = colddown;
+    const { region, zone, faction } = info;
+    const compress = (item) => {
+        const { ts, subs, overview,score, name } = item;
+        let str = `${ts}@${score}@`;
+        if(overview){
+            str += `${overview.rank}|${overview.clz}|${overview.dps}`
+        }
+        str += '@';
+        if(subs && subs.length){
+            str += subs.map((sub) => {
+                const {clz, rank, dps} = sub;
+                return `${rank}|${clz}|${dps}`;
+            }).join('#');
+            // #
+        }
+        return str;
     }
-    str += '@';
-    if(subs && subs.length){
-        str += subs.map((sub) => {
-            const {clz, rank, dps} = sub;
-            return `${rank}|${clz}|${dps}`;
-        }).join('#');
-        // #
+    
+    const data = JSON.parse(fs.readFileSync(`./build/${cd}/data.json`));
+    
+    let user = 0;
+    let scored = 0;
+    const incontent = data.items.map((item) => {
+        const { name, score } = item;
+        user+=1;
+        if(score) scored += 1;
+        return `["${name}"] = "${compress(item)}"`;
+    }).join(',')
+    const regoion_cn = REGION[region];
+    const zone_cn = ZONE[zone];
+    const part = FAC[faction];
+    const content = `reportCD="${cd}"\r\nwclRegion="${REGION[region]}"\r\nwclData={${incontent}}`;
+    fs.writeFileSync(`./build/${cd}/_data.lua`, content);
+    // fs.writeFileSync(`../release/${regoion_cn}-${zone_cn}-${part}-data.lua`, content);
+    const df = '../WclInspector/datas.lua';
+    if(fs.existsSync(df)){
+        fs.rmSync(df);
     }
-    return str;
-}
-
-const data = JSON.parse(fs.readFileSync(`./build/${cd}/data.json`));
-
-
-// let inx = 0;
-// for(const item of data.items){
-//     const {subs} = item;
-//     if(subs.length > 1){
-//         console.log(inx)
-//     }
-//     inx += 1;
-// } /// 小鼠加入的队伍。 CHAT_MSG_SYSTEM
-// console.log(compress(data.items[603]));
-// console.log(data.items[3736]);
-// console.log(compress(data.items[3736]));
-const incontent = data.items.map((item) => {
-    const { name } = item;
-    return `["${name}"] = "${compress(item)}"`;
-}).join(',')
-
-const content = `wclData={${incontent}}`;
-
-
-
-fs.writeFileSync(`./build/${cd}/_data.lua`, content)
+    fs.writeFileSync(df, content);
+    exec(`zip -r ../release/WclInspector-${regoion_cn}-${zone_cn}-${part}[${scored}-${user}].zip ../WclInspector/`, (err, stdout, stderr) => {
+        log(stdout);
+        console.error(stderr);
+    })
+};
