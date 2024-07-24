@@ -1,3 +1,5 @@
+-- https://github.com/sankooc/wclrank
+
 GameTooltip:HookScript("OnTooltipSetUnit", function(self)
     local name, unit = self:GetUnit()
     if (not unit) then

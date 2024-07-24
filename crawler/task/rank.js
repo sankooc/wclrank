@@ -1,11 +1,11 @@
 import puppeteer from 'puppeteer';
 import fs from 'node:fs';
 import cheerio from 'cheerio';
-import {now, sleep, RACS, log} from './constans.js';
+import { now, sleep, COMPS, log } from './constans.js';
 
 export const build = async (colddown) => {
-    const { cd, info} = colddown;
-    const { region, zone,faction } = info;
+    const { cd, info } = colddown;
+    const { region, zone, faction } = info;
     const browser = await puppeteer.launch();
 
     const hasNext = (html) => {
@@ -29,15 +29,15 @@ export const build = async (colddown) => {
 
     {
         let pageNum = 1;
-        while(true){
-            if(pageNum > 20){
+        while (true) {
+            if (pageNum > 20) {
                 break;
             }
             const ff = colddown.overview(pageNum);
-            if(fs.existsSync(ff)){
+            if (fs.existsSync(ff)) {
                 log(`overview ${pageNum} page exist`);
                 const next = hasNext(fs.readFileSync(ff).toString());
-                if(!next){
+                if (!next) {
                     break;
                 }
             } else {
@@ -45,36 +45,34 @@ export const build = async (colddown) => {
                 const cont = await marking(url);
                 fs.writeFileSync(ff, cont.content);
                 await sleep(2000)
-                if(!cont.next){
+                if (!cont.next) {
                     break;
                 }
             }
-            pageNum += 1;    
+            pageNum += 1;
         }
     }
-    for(const k of Object.keys(RACS)){
-        const sps = RACS[k];
-        for(const spec of sps){
-            let pageNum = 1;
-            while(true) {
-                const ff = colddown.spec(k, spec, pageNum);
-                if(fs.existsSync(ff)){
-                    log(`spec ${k}-${spec}-${pageNum} page exist`);
-                    const next = hasNext(fs.readFileSync(ff).toString());
-                    if(!next){
-                        break;
-                    }
-                } else {
-                    const url = colddown.specPage(k, spec, pageNum);
-                    const cont = await marking(url);
-                    fs.writeFileSync(ff, cont.content);
-                    await sleep(3000)
-                    if(!cont.next){
-                        break;
-                    }
+    for (const cp of Object.keys(COMPS)) {
+        const [k, spec] = cp.split('-');
+        let pageNum = 1;
+        while (true) {
+            const ff = colddown.spec(k, spec, pageNum);
+            if (fs.existsSync(ff)) {
+                log(`spec ${k}-${spec}-${pageNum} page exist`);
+                const next = hasNext(fs.readFileSync(ff).toString());
+                if (!next) {
+                    break;
                 }
-                pageNum += 1;
+            } else {
+                const url = colddown.specPage(k, spec, pageNum);
+                const cont = await marking(url);
+                fs.writeFileSync(ff, cont.content);
+                await sleep(3000)
+                if (!cont.next) {
+                    break;
+                }
             }
+            pageNum += 1;
         }
     }
     await browser.close();

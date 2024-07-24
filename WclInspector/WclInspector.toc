@@ -7,6 +7,6 @@
 ## X-Min-Interface-BCC: 20504
 ## X-Min-Interface-Wrath: 30400
 
-datas.lua
+realm/5042.lua
 data.lua
 main.lua

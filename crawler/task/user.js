@@ -2,7 +2,7 @@ import puppeteer from 'puppeteer';
 import fs from 'node:fs';
 import moment from 'moment';
 import cheerio from 'cheerio';
-import { RACS, log, sleep } from './constans.js';
+import { COMPS, log, sleep } from './constans.js';
 import path from 'node:path';
 
 
@@ -65,7 +65,7 @@ const download = async (browser, colddown, username) => {
   if (fs.existsSync(fpath)) {
     return true;
   }
-  await sleep(2000);
+  await sleep(4000);
   const url = colddown.userPage(username);
   // const url = `https://classic.warcraftlogs.com/character/cn/${encodeURIComponent(region)}/${encodeURIComponent(name)}#zone=${zone}&size=${size}`;
   log(' open:', url);
@@ -114,15 +114,14 @@ export const build = async (colddown) => {
     getUser(name, ts);
   }
   log('load overvie complete');
-  for (const k of Object.keys(RACS)) {
-    const sps = RACS[k];
-    for (const spec of sps) {
-      let items = readRaces(colddown, k, spec);
-      for (const item of items) {
-        const { rank, name, ts, dps, clz } = item;
-        getUser(name, ts);
-      }
+  for(const cp of Object.keys(COMPS)){
+    const [k, spec] = cp.split('-');
+    let items = readRaces(colddown, k, spec);
+    for (const item of items) {
+      const { rank, name, ts, dps, clz } = item;
+      getUser(name, ts);
     }
+
   }
   log('load race complete');
   const total = Object.keys(userMap).length;

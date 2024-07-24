@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import moment from 'moment';
 import cheerio from 'cheerio';
-import { RACS,log } from './constans.js';
+import { COMPS,log } from './constans.js';
 
 
 const inspect = (ff) => {
@@ -12,7 +12,10 @@ const inspect = (ff) => {
         const r = {};
         r.rank = parseInt($(item).find('td.rank').text().trim());
         r.name = $(item).find('td .players-table-name a.main-table-player').text().trim();
-        r.clz = $(item).find('td .players-table-name img').attr('alt').trim();
+        r.clz = COMPS[$(item).find('td .players-table-name img').attr('alt').trim()];
+        if(!r.clz){
+            console.log($(item).find('td .players-table-name img').attr('alt').trim());
+        }
         r.dps = $(item).find('td.players-table-dps').text().trim();
         r.ts = 'N/A';
         const ts = $(item).find('td.players-table-date span').text().trim();
@@ -111,19 +114,18 @@ export const build = (colddown) => {
         userInfo.overview = { rank, clz, dps };
     }
     log('overvie-complete');
-    for (const k of Object.keys(RACS)) {
-        const sps = RACS[k];
-        for (const spec of sps) {
-            let items = readRaces(colddown, k, spec);
-            for (const item of items) {
-                const { rank, name, ts, dps, clz } = item;
-                const userInfo = getUser(name, ts);
-                userInfo.subs.push({
-                    clz,
-                    rank,
-                    dps
-                })
-            }
+    for(const cp of Object.keys(COMPS)){
+        const [k, spec] = cp.split('-')
+        
+        let items = readRaces(colddown, k, spec);
+        for (const item of items) {
+            const { rank, name, ts, dps, clz } = item;
+            const userInfo = getUser(name, ts);
+            userInfo.subs.push({
+                clz,
+                rank,
+                dps
+            })
         }
     }
     log('race-complete');
