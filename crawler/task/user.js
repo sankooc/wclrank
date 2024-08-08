@@ -21,14 +21,33 @@ const inspect = (ff) => {
     if (ts) {
       const m = ts.match(/^(\d+)\$/);
       if (m && m.length > 1) {
+        r._ts = parseInt(m[1]);
         r.ts = moment(parseInt(m[1])).format("MM/DD")
       }
     }
     rs.push(r);
   }
+  console.log(rs);
+  process.exit(1)
   return rs;
 }
 
+const inspect2 = (ff) => {
+  const $ = cheerio.load(fs.readFileSync(ff).toString());
+  const {ctimeMs} = fs.statSync(ff);
+  const items = $('table.summary-table tbody tr');
+  const rs = [];
+  for (const item of items) {
+    const r = {};
+    r.rank = parseInt($(item).find('td.rank').text().trim());
+    r.name = $(item).find('td .players-table-name a.main-table-player').text().trim();
+    r.clz = $(item).find('td .players-table-name img').attr('alt').trim();
+    r.score = $(item).find('td.players-table-score').text().trim();
+    r.ts = ctimeMs
+    rs.push(r);
+  }
+  return rs;
+}
 const readOverview = (colddown) => {
   const { cd } = colddown;
   let page = 1;
@@ -38,7 +57,7 @@ const readOverview = (colddown) => {
     if (!fs.existsSync(ff)) {
       break;
     }
-    items.push(...inspect(ff))
+    items.push(...inspect2(ff))
     page += 1;
   }
   return items;
@@ -53,15 +72,14 @@ const readRaces = (colddown, clz, spec) => {
     if (!fs.existsSync(ff)) {
       break;
     }
-    items.push(...inspect(ff))
+    items.push(...inspect2(ff))
     page += 1;
   }
   return items;
 };
 
-const download = async (browser, colddown, username) => {
-  const { cd } = colddown;
-  const fpath = colddown.userFile(username);
+const download = async (browser, colddown, username, score) => {
+  const fpath = colddown.userFile(username,score);
   if (fs.existsSync(fpath)) {
     return true;
   }
@@ -84,25 +102,21 @@ const download = async (browser, colddown, username) => {
     fs.writeFileSync(fpath, content)
   }catch(e){
     console.error(e);
-    await page.screenshot({
-      path: 'hn.png',
-    });
     page.close();
     return false;
   }
+  page.close();
   return true;
 };
 
 
 export const build = async (colddown) => {
-  const { cd, info } = colddown;
-  const { region, zone, faction } = info;
+  const { info } = colddown;
   const userMap = {};
-  const getUser = (name, ts) => {
+  const getUser = (name, score) => {
     if (userMap[name]) return userMap[name];
     userMap[name] = {
-      ts,
-      subs: [],
+      score
     }
     return userMap[name];
   }
@@ -110,28 +124,27 @@ export const build = async (colddown) => {
   let items = readOverview(colddown);
 
   for (const item of items) {
-    const { rank, name, ts, dps, clz } = item;
-    getUser(name, ts);
+    const { rank, name, clz, score } = item;
+    getUser(name, score);
   }
   log('load overvie complete');
   for(const cp of Object.keys(COMPS)){
     const [k, spec] = cp.split('-');
     let items = readRaces(colddown, k, spec);
     for (const item of items) {
-      const { rank, name, ts, dps, clz } = item;
-      getUser(name, ts);
+      const { rank, name, clz, score } = item;
+      getUser(name, score);
     }
 
   }
   log('load race complete');
   const total = Object.keys(userMap).length;
   log('user count', total);
-
   const browser = await puppeteer.launch();
   let infos = 0;
   for (const username of Object.keys(userMap)) {
     try {
-      const flag = await download(browser, colddown, username);
+      const flag = await download(browser, colddown, username, userMap[username].score);
       if(flag) infos +=1;
     } catch (e) {
       console.error(e);
@@ -140,15 +153,3 @@ export const build = async (colddown) => {
   await browser.close();
   return {total, infos}
 };
-
-
-
-// const cd = '0718';
-// const region = '5042';
-// const zone = '1025';
-// const faction = '1';
-// const rname = '碧玉矿洞';
-// // log(readOverview(cd).length)
-// // readRaces(cd, 'Priest', 'Shadow')
-// build(cd, region, zone, faction);
-// log(parse(cd, zone, '大尾巴黄鼠狼'));

@@ -3,9 +3,15 @@ import fs from 'node:fs';
 import cheerio from 'cheerio';
 import { now, sleep, COMPS, log } from './constans.js';
 
-export const build = async (colddown) => {
-    const { cd, info } = colddown;
-    const { region, zone, faction } = info;
+export const build = async (colddown, stamp) => {
+    const { info } = colddown;
+    // const stampPath = colddown.stamp();
+    // if(fs.existsSync(stampPath)){
+    //     const ss = fs.readFileSync(stampPath).toString();
+    //     if(ss == stamp){
+    //         return;
+    //     }
+    // }
     const browser = await puppeteer.launch();
 
     const hasNext = (html) => {
@@ -18,19 +24,26 @@ export const build = async (colddown) => {
         const page = await browser.newPage();
         await page.goto(url);
         await page.setViewport({ width: 800, height: 600 });
-        await page.waitForSelector('table .players-table-name');
-        const html = await page.content();
-        page.close();
-        return {
-            content: html,
-            next: hasNext(html),
-        };
+        try {
+            await page.waitForSelector('table .players-table-name');
+            const html = await page.content();
+            page.close();
+            return {
+                content: html,
+                next: hasNext(html),
+                save: true,
+            };
+        }catch(e){
+            console.error(e);
+
+        }
+        return {save: false};
     };
 
     {
         let pageNum = 1;
         while (true) {
-            if (pageNum > 20) {
+            if (pageNum > 50) {
                 break;
             }
             const ff = colddown.overview(pageNum);
@@ -41,13 +54,17 @@ export const build = async (colddown) => {
                     break;
                 }
             } else {
-                const url = colddown.overviewPage(pageNum);
-                const cont = await marking(url);
-                fs.writeFileSync(ff, cont.content);
-                await sleep(2000)
-                if (!cont.next) {
-                    break;
-                }
+                    const url = colddown.overviewPage(pageNum);
+                    const cont = await marking(url);
+                    if(cont.save){
+                        fs.writeFileSync(ff, cont.content);
+                        await sleep(1000)
+                    } else {
+                        break;
+                    }
+                    if (!cont.next) {
+                        break;
+                    }
             }
             pageNum += 1;
         }
@@ -66,8 +83,12 @@ export const build = async (colddown) => {
             } else {
                 const url = colddown.specPage(k, spec, pageNum);
                 const cont = await marking(url);
-                fs.writeFileSync(ff, cont.content);
-                await sleep(3000)
+                if(cont.save){
+                    fs.writeFileSync(ff, cont.content);
+                    await sleep(3000)
+                } else {
+                    break;
+                }
                 if (!cont.next) {
                     break;
                 }
@@ -76,6 +97,8 @@ export const build = async (colddown) => {
         }
     }
     await browser.close();
+
+    // fs.writeFileSync(stampPath, stamp);
 }
 
 // await build(colddown);

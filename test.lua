@@ -56,8 +56,16 @@ checking("90", "武器战士")
 checking("91", "狂怒战士")
 
 
-local name = "大尾巴黄鼠狼";
+-- local name = "大尾巴黄鼠狼";
+local name = "Yangsteak";
 local ins = getWCLinfo(name, true);
+if ins ~= nil then
+    for _,v in ipairs(ins) do
+      print(v)
+    end
+end
+print('-------')
+local ins = getWCLinfo(name, false);
 if ins ~= nil then
     for _,v in ipairs(ins) do
       print(v)

@@ -1,6 +1,6 @@
 local CLASSES = {"死骑", "德鲁伊", "猎人", "法师", "圣骑", "牧师", "潜行者", "萨满", "术士", "战士"}
 local SPECS = {{"鲜血", "冰霜", "邪恶"}, {"平衡", "野性"}, {"野兽", "生存", "射击"}, {"奥术", "火焰", "冰霜"}, {"惩戒"}, {"暗影"}, {"奇袭", "狂徒"}, {"增强", "元素"}, {"痛苦", "恶魔", "毁灭"}, {"武器", "狂怒"}}
-
+-- ulduar
 -- local doMap;
 function doMap(str, full)
     if str == nil then
@@ -55,7 +55,7 @@ function getWCLinfo(name, color)
     if info == nil then
         return nil;
     end
-    return parseData(info, color)
+    return parseData(name, info, color)
 end
 
 -- local subs;
@@ -68,22 +68,24 @@ function subs(content, color)
             rank, r,
             g, b, d)
     end
-    return string.format("%s天赋排名:%s", doMap(c, false), rank)
+    return string.format("天赋[%s]排名:%s", doMap(c, false), rank)
 end
 
--- local parseData;
-function parseData(content, color)
+local stage = "奥杜尔";
+-- date("!*t")
+function parseData(name, content, color)
     local rs = {};
     local ts, s, ow, det = strsplit("@", content)
-    tinsert(rs, string.format("[WCL]英雄榜 收录时间 %s", ts));
-
+    if color then
+        tinsert(rs, "[WCL Ulduar]英雄榜");
+    end
     local score = tonumber(s)
     if score > 0 then
         if color then
             local r, g, b = getScore(score);
-            tinsert(rs, string.format("[WCL]平均分:  |cFF%02x%02x%02x%s|r", r, g, b, s));
-        else
-            tinsert(rs, string.format("[WCL]平均分: %s", s));
+            tinsert(rs, string.format("[%s]平均分:  |cFF%02x%02x%02x%s|r 收入时间:%s", stage, r, g, b, s, ts));
+        -- else
+        --     tinsert(rs, string.format("%s[%s] %s平均分: %s", name, doMap(c, true), s));
         end
     end
     if strlen(ow) > 0 then
@@ -93,7 +95,8 @@ function parseData(content, color)
             local r, g, b = getCor(rate);
             tinsert(rs, string.format("[总]  排名:  |cFF%02x%02x%02x%04s|r  天赋:  %s", r, g, b, rank, doMap(c, true)));
         else
-            tinsert(rs, string.format("WCL DPS总排名:%s [%s]", rank, doMap(c, true)));
+            tinsert(rs, string.format("%s[%s] %sWCL平均分: %s", name, doMap(c, true), stage, s));
+            tinsert(rs, string.format("DPS总排名:%s", rank));
         end
     end
     if strlen(det) > 0 then
@@ -116,5 +119,5 @@ _G["parseWCL"] = function(name)
     if info == nil then
         return nil;
     end
-    return parseData(info, false)
+    return parseData(name, info, false)
 end

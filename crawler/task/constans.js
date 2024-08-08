@@ -15,16 +15,19 @@ const _mkdir = (ff) => {
 
 }
 export class ColdDown {
-    constructor(cd, info) {
+    constructor(info) {
         this.base = './build/';
-        this.cd = cd;
         this.info = info;
     }
     get root() {
-        return `${this.base}${this.cd}/${this.info.region}-${this.info.zone}-${this.info.faction}`
+        return `${this.base}/${this.info.region}/${this.info.zone}-${this.info.faction}`
+    }
+    get userRoot(){
+        return `${this.base}/users/${this.info.region}-${this.info.zone}`
     }
     init() {
-        _mkdir(this.base + this.cd)
+        _mkdir(this.base)
+        _mkdir(`${this.base}/${this.info.region}`)
         _mkdir(`${this.root}`)
         _mkdir(`${this.root}/html`)
     }
@@ -32,16 +35,24 @@ export class ColdDown {
         return `${this.root}/html/overview-${page}.html`;
     }
     overviewPage(page) {
-        return `https://classic.warcraftlogs.com/server/rankings/${this.info.region}/${this.info.zone}#faction=${this.info.faction}&page=${page}`;
+        return `https://classic.warcraftlogs.com/server/rankings/${this.info.region}/${this.info.zone}#faction=${this.info.faction}&boss=-1&partition=${this.info.partition}&page=${page}`;
     }
     spec(clz, spec, page) {
         return `${this.root}/html/stat-${clz}-${spec}-${page}.html`;
     }
-    specPage(clz, spec, page) {
-        return `https://classic.warcraftlogs.com/server/rankings/${this.info.region}/${this.info.zone}#class=${clz}&spec=${spec}&faction=${this.info.faction}&page=${page}`;
+    get dataSource(){
+         return `${this.root}/data.json` 
     }
-    userFile(username) {
-        return this.root + '/html/user-' + encodeURIComponent(username) + '.html';
+    specPage(clz, spec, page) {
+        return `https://classic.warcraftlogs.com/server/rankings/${this.info.region}/${this.info.zone}#class=${clz}&spec=${spec}&boss=-1&partition=${this.info.partition}&faction=${this.info.faction}&page=${page}`;
+    }
+    userFile(username, score) {
+        const sup = this.root + '/users/'+ encodeURIComponent(username);
+        _mkdir(sup);
+        return this.root + '/users/'+ encodeURIComponent(username) +'/'+ score + '.html';
+    }
+    stamp(){
+        return `${this.root}/stamp.txt`
     }
     userPage(username) {
         const reg = REGION[this.info.region];
@@ -68,6 +79,7 @@ export const REGION = {
 
 export const ZONE = {
     1025: 'NAXX',
+    1026: 'ULD',
 }
 
 export const FAC = {

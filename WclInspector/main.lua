@@ -44,7 +44,7 @@ GameTooltip:HookScript("OnTooltipSetUnit", function(self)
             _G["GameTooltipTextLeft"..n]:SetText(text[i])
         end
     end
-    local ins = getWCLinfo(name)
+    local ins = getWCLinfo(name, true)
     if ins ~= nil then
         for _,v in ipairs(ins) do
             tinsert(linesToAdd, {v,0.4,0.4,0.3})
