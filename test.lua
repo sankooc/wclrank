@@ -4,6 +4,9 @@ end
 require 'WclInspector.data'
 require 'WclInspector.realm.5042'
 
+function time()
+  return os.time()
+end
 function tinsert(tb, d)
   table.insert(tb, d)
 end
@@ -56,8 +59,8 @@ checking("90", "武器战士")
 checking("91", "狂怒战士")
 
 
--- local name = "大尾巴黄鼠狼";
-local name = "Yangsteak";
+local name = "大尾巴黄鼠狼";
+-- local name = "Yangsteak";
 local ins = getWCLinfo(name, true);
 if ins ~= nil then
     for _,v in ipairs(ins) do
@@ -66,8 +69,20 @@ if ins ~= nil then
 end
 print('-------')
 local ins = getWCLinfo(name, false);
+local str = '';
 if ins ~= nil then
     for _,v in ipairs(ins) do
-      print(v)
+      if strlen(str) > 0 then
+        str = str..",  "..v
+      else
+        str = v
+      end
     end
 end
+print(str)
+
+
+-- print(os.time())
+-- local now = time();
+-- print(now)
+-- print(now > 1000)

@@ -49,8 +49,13 @@ const readRaces = (colddown, clz, spec) => {
 const parse = (colddown, username, score) => {
     const { info } = colddown;
     const { zone } = info;
-    const fpath = colddown.userFile(username, score);
+    const fpath = colddown.userFileOne(username, score);
+    if(!fpath){
+        return
+    }
     if(!fs.existsSync(fpath)){
+        console.log('not exist', username, score);
+        console.log(fpath);
         return;
     }
     const html = fs.readFileSync(fpath).toString();
@@ -120,6 +125,7 @@ export const build = (colddown) => {
     const uerRankedCount = Object.keys(userMap).length;
     log('user ranked count', uerRankedCount);
     let infoCount = 0;
+    let count = 1;
     for(const username of Object.keys(userMap)){
         const userInfo = userMap[username];
         userInfo.name = username;
@@ -131,6 +137,10 @@ export const build = (colddown) => {
             userInfo.ts = info.ts;
         }
         rs.items.push(userInfo)
+        if(count % 300 === 0){
+            log(`combine: [${count}/${uerRankedCount}] infos:${infoCount}`);
+        }
+        count += 1;
     }
     log('user ranked count', infoCount);
     log('user mapping complete');

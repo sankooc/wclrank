@@ -1,7 +1,6 @@
 local CLASSES = {"死骑", "德鲁伊", "猎人", "法师", "圣骑", "牧师", "潜行者", "萨满", "术士", "战士"}
-local SPECS = {{"鲜血", "冰霜", "邪恶"}, {"平衡", "野性"}, {"野兽", "生存", "射击"}, {"奥术", "火焰", "冰霜"}, {"惩戒"}, {"暗影"}, {"奇袭", "狂徒"}, {"增强", "元素"}, {"痛苦", "恶魔", "毁灭"}, {"武器", "狂怒"}}
--- ulduar
--- local doMap;
+local SPECS = {{"鲜血", "冰霜", "邪恶", "巫妖", "符文", "鲜血"}, {"平衡", "野性", "守护", "恢复", "典狱"}, {"野兽", "生存", "射击"}, {"奥术", "火焰", "冰霜"}, {"神圣","防护","惩戒","正义"}, {"戒律","神圣","暗影"}, {"奇袭", "狂徒", "敏锐"}, {"元素","增强", "恢复"}, {"痛苦", "恶魔", "毁灭"}, {"武器", "狂怒", "防御", "角斗士", "冠军", "混战"}}
+
 function doMap(str, full)
     if str == nil then
         return 'unknown'
@@ -64,13 +63,17 @@ function subs(content, color)
     local rate = tonumber(rank)
     if color then
         local r, g, b = getCor(rate);
-        return string.format("[%s]排名:  |cFF%02x%02x%02x%04s|r   DPS:  |cFF%02x%02x%02x%s|r", doMap(c, false), r, g, b,
+        return string.format("[%s]排名:  |cFF%02x%02x%02x%s|r   Score:  |cFF%02x%02x%02x%s|r", doMap(c, false), r, g, b,
             rank, r,
             g, b, d)
     end
     return string.format("天赋[%s]排名:%s", doMap(c, false), rank)
 end
 
+
+function toDate (ts)
+    return ts;
+end
 local stage = "奥杜尔";
 -- date("!*t")
 function parseData(name, content, color)
@@ -93,10 +96,10 @@ function parseData(name, content, color)
         local rate = tonumber(rank)
         if color then
             local r, g, b = getCor(rate);
-            tinsert(rs, string.format("[总]  排名:  |cFF%02x%02x%02x%04s|r  天赋:  %s", r, g, b, rank, doMap(c, true)));
+            tinsert(rs, string.format("[%s]  排名:  |cFF%02x%02x%02x%s|r  天赋:  %s", stage, r, g, b, rank, doMap(c, true)));
         else
-            tinsert(rs, string.format("%s[%s] %sWCL平均分: %s", name, doMap(c, true), stage, s));
-            tinsert(rs, string.format("DPS总排名:%s", rank));
+            tinsert(rs, string.format("%s[%s] %s WCL平均分: %s", name, doMap(c, true), stage, s));
+            tinsert(rs, string.format("排名:%s", rank));
         end
     end
     if strlen(det) > 0 then
@@ -110,6 +113,9 @@ function parseData(name, content, color)
         if a3 ~= nil then
             tinsert(rs, subs(a3, color));
         end
+    end
+    if not color then
+        tinsert(rs, string.format("收入时间:%s", toDate(ts)));
     end
     return rs;
 end

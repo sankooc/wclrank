@@ -17,6 +17,6 @@
   crawler的config.yml 中添加所在服务和raid进度编号
 
 
-## Suppert
+## Support
 
 [CN]碧玉矿洞 @柯米里亚

@@ -51,6 +51,7 @@ export const build = (colddown) => {
     if (fs.existsSync(df)) {
         fs.rmSync(df);
     }
+    console.log(scored);
     // console.log(content);
     fs.writeFileSync(df, content);
     exec(`zip -r ../release/WclInspector-${regoion_cn}-${zone_cn}-${part}[${scored}-${user}].zip ../WclInspector/`, (err, stdout, stderr) => {

@@ -2,7 +2,7 @@ import puppeteer from 'puppeteer';
 import fs from 'node:fs';
 import moment from 'moment';
 import cheerio from 'cheerio';
-import { COMPS, log, sleep } from './constans.js';
+import { skipTalent, COMPS, log, sleep } from './constans.js';
 import path from 'node:path';
 
 
@@ -78,22 +78,21 @@ const readRaces = (colddown, clz, spec) => {
   return items;
 };
 
-const download = async (browser, colddown, username, score) => {
+const download = async (browser, colddown,prefix, username, score) => {
   const fpath = colddown.userFile(username,score);
   if (fs.existsSync(fpath)) {
     return true;
   }
-  await sleep(4000);
+  await sleep(5000);
   const url = colddown.userPage(username);
   // const url = `https://classic.warcraftlogs.com/character/cn/${encodeURIComponent(region)}/${encodeURIComponent(name)}#zone=${zone}&size=${size}`;
-  log(' open:', url);
+  log(prefix+' open:', url);
   // log(fpath);
   const page = await browser.newPage();
   try {
     await page.goto(url);
   }catch(e){
     console.error(e);
-    page.close();
     return false;
   }
   try {
@@ -102,10 +101,9 @@ const download = async (browser, colddown, username, score) => {
     fs.writeFileSync(fpath, content)
   }catch(e){
     console.error(e);
-    page.close();
     return false;
   }
-  page.close();
+  await page.close();
   return true;
 };
 
@@ -130,6 +128,9 @@ export const build = async (colddown) => {
   log('load overvie complete');
   for(const cp of Object.keys(COMPS)){
     const [k, spec] = cp.split('-');
+    if(skipTalent(k, spec)) {
+        continue;
+    }
     let items = readRaces(colddown, k, spec);
     for (const item of items) {
       const { rank, name, clz, score } = item;
@@ -142,14 +143,17 @@ export const build = async (colddown) => {
   log('user count', total);
   const browser = await puppeteer.launch();
   let infos = 0;
+  let index = 0;
   for (const username of Object.keys(userMap)) {
     try {
-      const flag = await download(browser, colddown, username, userMap[username].score);
+      const prefix = (index++) + '/' + total;
+      const flag = await download(browser, colddown, prefix, username, userMap[username].score);
       if(flag) infos +=1;
     } catch (e) {
       console.error(e);
     }
   }
+  log('user exists', total);
   await browser.close();
   return {total, infos}
 };

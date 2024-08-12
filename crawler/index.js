@@ -18,8 +18,8 @@ const v =  moment().format('MM-DD');
 for (const version of versions) {
   const c = new ColdDown(version);
   c.init();
-  await rank(c, v);
+  // await rank(c, v);
   await user(c);
-  await combine(c);
-  await making(c);
+  // await combine(c);
+  // await making(c);
 }
