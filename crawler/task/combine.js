@@ -47,8 +47,6 @@ const readRaces = (colddown, clz, spec) => {
 };
 
 const parse = (colddown, username, score) => {
-    const { info } = colddown;
-    const { zone } = info;
     const fpath = colddown.userFileOne(username, score);
     if(!fpath){
         return
@@ -66,15 +64,7 @@ const parse = (colddown, username, score) => {
     const item = {};
     item.avg = avg;
     item.ts = ctimeMs;
-    // item.details = [];
-    // const tableSelect = `table#boss-table-${zone}`;
-    // const list = $(tableSelect + '>tbody>tr');
-    // for(const tr of list){
-    //     const val = $(tr).find('td.rank-percent')[0].childNodes[0].nodeValue.trim();
-    //     const bossId = $(tr).find('td img.boss-icon').attr('src')
-    //     const m = bossId.match(/\/(\d+)-icon/);
-    //     item.details.push({id: m[1], val})
-    // }
+
     return item;
 };
 // 60 * 60 * 24
@@ -108,8 +98,7 @@ export const build = (colddown) => {
     }
     log('overvie-complete');
     for(const cp of Object.keys(COMPS)){
-        const [k, spec] = cp.split('-')
-        
+        const [k, spec] = cp.split('-');
         let items = readRaces(colddown, k, spec);
         for (const item of items) {
             const { rank, name, clz, score} = item;
