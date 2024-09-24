@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/snap.png" width="220px" alt="Logo">
+  <img src="assets/snap.png" width="800px" alt="Logo">
 </p>
 
 # WCL英雄榜[怀旧服WLK]
